@@ -14,6 +14,7 @@
             justify-content: center;
             align-items: center;
             font-family: Arial, sans-serif;
+            cursor: pointer;
         }
 
         canvas {
@@ -52,13 +53,13 @@
         canvas.height = window.innerHeight;
 
         class Firework {
-            constructor() {
-                this.x = Math.random() * canvas.width;
+            constructor(x, targetY) {
+                this.x = x;
                 this.y = canvas.height;
                 this.sx = this.x;
                 this.sy = this.y;
-                this.targetY = Math.random() * canvas.height * 0.5;
-                this.speed = Math.random() * 5 + 5;
+                this.targetY = targetY;
+                this.speed = 10;
                 this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
                 this.exploded = false;
                 this.particles = [];
@@ -138,10 +139,6 @@
             ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            if (Math.random() < 0.05) {
-                fireworks.push(new Firework());
-            }
-
             fireworks.forEach((firework, index) => {
                 firework.update();
                 firework.draw();
@@ -154,6 +151,14 @@
         }
 
         animate();
+
+        // Tıklama olayı
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            fireworks.push(new Firework(x, y));
+        });
 
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
