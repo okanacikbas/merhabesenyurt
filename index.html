@@ -30,6 +30,24 @@
             text-align: center;
             z-index: 2;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: rainbow 3s infinite linear, wave 2s infinite ease-in-out;
+        }
+
+        @keyframes rainbow {
+            0% { color: #ff0000; }
+            14% { color: #ff9900; }
+            28% { color: #33cc33; }
+            42% { color: #00ccff; }
+            57% { color: #3333ff; }
+            71% { color: #cc00cc; }
+            85% { color: #ff3399; }
+            100% { color: #ff0000; }
+        }
+
+        @keyframes wave {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
         }
 
         .firework {
@@ -42,7 +60,7 @@
     </style>
 </head>
 <body>
-    <div class="title">Esenyurt Belediyesi Havai Fişek Gösterisi</div>
+    <div class="title">Havai Fişek Gösterisi</div>
     <canvas id="canvas"></canvas>
 
     <script>
