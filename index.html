@@ -81,7 +81,7 @@
         const stickmanCanvas = document.getElementById('stickmanCanvas');
         const stickmanCtx = stickmanCanvas.getContext('2d');
         stickmanCanvas.width = window.innerWidth;
-        stickmanCanvas.height = 150; // Çöp adamlar için alt alanda küçük bir canvas
+        stickmanCanvas.height = 200; // Basketbol sahası için biraz daha yüksek alan
 
         class Firework {
             constructor(x, targetY) {
@@ -189,14 +189,14 @@
             fireworks.push(new Firework(x, y));
         });
 
-        // Çöp Adam ve Top Animasyonu
+        // Basketbol Çöp Adam ve Top Animasyonu
         class Stickman {
             constructor(x, team) {
                 this.x = x;
                 this.y = stickmanCanvas.height - 30;
                 this.team = team; // 'red' veya 'blue'
-                this.kickAngle = 0;
-                this.kicking = false;
+                this.shootAngle = 0;
+                this.shooting = false;
             }
 
             draw() {
@@ -205,32 +205,34 @@
                 stickmanCtx.moveTo(this.x, this.y - 10);
                 stickmanCtx.lineTo(this.x, this.y + 10); // Gövde
                 stickmanCtx.moveTo(this.x, this.y - 5);
-                stickmanCtx.lineTo(this.x - 10, this.y - 15); // Sol kol
-                stickmanCtx.moveTo(this.x, this.y - 5);
-                stickmanCtx.lineTo(this.x + 10, this.y - 15); // Sağ kol
+                if (this.shooting) {
+                    stickmanCtx.lineTo(this.x - 10 * Math.cos(this.shootAngle), this.y - 15 - 10 * Math.sin(this.shootAngle)); // Sol kol (atış)
+                    stickmanCtx.moveTo(this.x, this.y - 5);
+                    stickmanCtx.lineTo(this.x + 10 * Math.cos(this.shootAngle), this.y - 15 - 10 * Math.sin(this.shootAngle)); // Sağ kol (atış)
+                } else {
+                    stickmanCtx.lineTo(this.x - 10, this.y - 15); // Sol kol
+                    stickmanCtx.moveTo(this.x, this.y - 5);
+                    stickmanCtx.lineTo(this.x + 10, this.y - 15); // Sağ kol
+                }
                 stickmanCtx.moveTo(this.x, this.y + 10);
                 stickmanCtx.lineTo(this.x - 10, this.y + 20); // Sol bacak
                 stickmanCtx.moveTo(this.x, this.y + 10);
-                if (this.kicking) {
-                    stickmanCtx.lineTo(this.x + 10 * Math.cos(this.kickAngle), this.y + 20 + 10 * Math.sin(this.kickAngle)); // Vuruş animasyonu
-                } else {
-                    stickmanCtx.lineTo(this.x + 10, this.y + 20); // Sağ bacak
-                }
+                stickmanCtx.lineTo(this.x + 10, this.y + 20); // Sağ bacak
                 stickmanCtx.strokeStyle = this.team;
                 stickmanCtx.lineWidth = 2;
                 stickmanCtx.stroke();
             }
 
-            kick() {
-                this.kicking = true;
+            shoot() {
+                this.shooting = true;
                 let angle = 0;
-                const kickInterval = setInterval(() => {
-                    this.kickAngle = Math.sin(angle) * Math.PI / 4;
+                const shootInterval = setInterval(() => {
+                    this.shootAngle = Math.sin(angle) * Math.PI / 6;
                     angle += 0.2;
                     if (angle > Math.PI) {
-                        this.kicking = false;
-                        this.kickAngle = 0;
-                        clearInterval(kickInterval);
+                        this.shooting = false;
+                        this.shootAngle = 0;
+                        clearInterval(shootInterval);
                     }
                 }, 50);
             }
@@ -238,52 +240,94 @@
 
         class Ball {
             constructor() {
-                this.x = stickmanCanvas.width / 2;
+                this.x = stickmanCanvas.width / 4;
                 this.y = stickmanCanvas.height - 10;
                 this.vx = 0;
                 this.vy = 0;
+                this.inHoop = false;
             }
 
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-                this.vy += 0.1; // Yerçekimi
+                this.vy += 0.2; // Yerçekimi
+
+                // Zemin çarpışması
                 if (this.y > stickmanCanvas.height - 10) {
                     this.y = stickmanCanvas.height - 10;
-                    this.vy *= -0.7; // Zıplama efekti
+                    this.vy *= -0.6; // Zıplama efekti
+                    this.vx *= 0.8; // Sürtünme
                 }
+
+                // Pota kontrolü (pota: sağda, x=width-50, y=50)
+                if (this.x > stickmanCanvas.width - 60 && this.x < stickmanCanvas.width - 40 && this.y < 60 && this.y > 40 && !this.inHoop) {
+                    this.inHoop = true;
+                    setTimeout(() => this.reset(), 500); // Sayı sonrası sıfırlama
+                }
+
+                // Sınır kontrolü
                 if (this.x < 0 || this.x > stickmanCanvas.width) {
-                    this.x = stickmanCanvas.width / 2;
-                    this.y = stickmanCanvas.height - 10;
-                    this.vx = 0;
-                    this.vy = 0;
+                    this.reset();
                 }
             }
 
             draw() {
                 stickmanCtx.beginPath();
                 stickmanCtx.arc(this.x, this.y, 5, 0, Math.PI * 2);
-                stickmanCtx.fillStyle = 'white';
+                stickmanCtx.fillStyle = 'orange';
                 stickmanCtx.fill();
+            }
+
+            reset() {
+                this.x = stickmanCanvas.width / 4;
+                this.y = stickmanCanvas.height - 10;
+                this.vx = 0;
+                this.vy = 0;
+                this.inHoop = false;
+            }
+        }
+
+        class Hoop {
+            draw() {
+                stickmanCtx.beginPath();
+                stickmanCtx.rect(stickmanCanvas.width - 50, 50, 10, 5); // Pota
+                stickmanCtx.strokeStyle = 'white';
+                stickmanCtx.lineWidth = 2;
+                stickmanCtx.stroke();
+                stickmanCtx.beginPath();
+                stickmanCtx.moveTo(stickmanCanvas.width - 50, 55);
+                stickmanCtx.lineTo(stickmanCanvas.width - 50, 70); // File
+                stickmanCtx.moveTo(stickmanCanvas.width - 40, 55);
+                stickmanCtx.lineTo(stickmanCanvas.width - 40, 70);
+                stickmanCtx.stroke();
             }
         }
 
         const stickmen = [
             new Stickman(stickmanCanvas.width / 4, 'red'),
-            new Stickman(3 * stickmanCanvas.width / 4, 'blue')
+            new Stickman(stickmanCanvas.width / 3, 'blue')
         ];
         const ball = new Ball();
+        const hoop = new Hoop();
 
         function animateStickmen() {
-            stickmanCtx.fillStyle = 'rgba(0, 128, 0, 0.5)'; // Çim efekti
+            stickmanCtx.fillStyle = 'rgba(139, 69, 19, 0.5)'; // Parke zemin efekti
             stickmanCtx.fillRect(0, 0, stickmanCanvas.width, stickmanCanvas.height);
+
+            stickmanCtx.beginPath();
+            stickmanCtx.moveTo(stickmanCanvas.width - 100, stickmanCanvas.height);
+            stickmanCtx.lineTo(stickmanCanvas.width - 100, 0); // Pota direği
+            stickmanCtx.strokeStyle = 'gray';
+            stickmanCtx.stroke();
+
+            hoop.draw();
 
             stickmen.forEach(stickman => {
                 stickman.draw();
-                if (Math.abs(stickman.x - ball.x) < 20 && ball.y > stickmanCanvas.height - 20 && !stickman.kicking) {
-                    stickman.kick();
-                    ball.vx = (stickman.team === 'red' ? 5 : -5);
-                    ball.vy = -5;
+                if (Math.abs(stickman.x - ball.x) < 20 && ball.y > stickmanCanvas.height - 20 && !stickman.shooting && !ball.inHoop) {
+                    stickman.shoot();
+                    ball.vx = 4;
+                    ball.vy = -8;
                 }
             });
 
