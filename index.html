@@ -57,18 +57,31 @@
             border-radius: 50%;
             z-index: 0;
         }
+
+        #stickmanCanvas {
+            position: absolute;
+            bottom: 0;
+            z-index: 2;
+        }
     </style>
 </head>
 <body>
-    <div class="title">Havai Fişek Gösterisi</div>
+    <div class="title">Esenyurt'ta Havai Fişek Gösterisi</div>
     <canvas id="canvas"></canvas>
+    <canvas id="stickmanCanvas"></canvas>
 
     <script>
+        // Havai Fişek Canvas
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
-
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+
+        // Çöp Adam Canvas
+        const stickmanCanvas = document.getElementById('stickmanCanvas');
+        const stickmanCtx = stickmanCanvas.getContext('2d');
+        stickmanCanvas.width = window.innerWidth;
+        stickmanCanvas.height = 150; // Çöp adamlar için alt alanda küçük bir canvas
 
         class Firework {
             constructor(x, targetY) {
@@ -89,7 +102,6 @@
                 if (!this.exploded) {
                     this.y -= this.speed;
                     this.time++;
-
                     if (this.time >= this.timeToExplode) {
                         this.explode();
                     }
@@ -136,7 +148,7 @@
             update() {
                 this.x += this.vx;
                 this.y += this.vy;
-                this.vy += 0.05; // Yerçekimi etkisi
+                this.vy += 0.05;
                 this.life--;
                 this.alpha = this.life / 50;
             }
@@ -153,7 +165,7 @@
 
         const fireworks = [];
 
-        function animate() {
+        function animateFireworks() {
             ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -165,12 +177,11 @@
                 }
             });
 
-            requestAnimationFrame(animate);
+            requestAnimationFrame(animateFireworks);
         }
 
-        animate();
+        animateFireworks();
 
-        // Tıklama olayı
         canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
@@ -178,9 +189,116 @@
             fireworks.push(new Firework(x, y));
         });
 
+        // Çöp Adam ve Top Animasyonu
+        class Stickman {
+            constructor(x, team) {
+                this.x = x;
+                this.y = stickmanCanvas.height - 30;
+                this.team = team; // 'red' veya 'blue'
+                this.kickAngle = 0;
+                this.kicking = false;
+            }
+
+            draw() {
+                stickmanCtx.beginPath();
+                stickmanCtx.arc(this.x, this.y - 20, 10, 0, Math.PI * 2); // Baş
+                stickmanCtx.moveTo(this.x, this.y - 10);
+                stickmanCtx.lineTo(this.x, this.y + 10); // Gövde
+                stickmanCtx.moveTo(this.x, this.y - 5);
+                stickmanCtx.lineTo(this.x - 10, this.y - 15); // Sol kol
+                stickmanCtx.moveTo(this.x, this.y - 5);
+                stickmanCtx.lineTo(this.x + 10, this.y - 15); // Sağ kol
+                stickmanCtx.moveTo(this.x, this.y + 10);
+                stickmanCtx.lineTo(this.x - 10, this.y + 20); // Sol bacak
+                stickmanCtx.moveTo(this.x, this.y + 10);
+                if (this.kicking) {
+                    stickmanCtx.lineTo(this.x + 10 * Math.cos(this.kickAngle), this.y + 20 + 10 * Math.sin(this.kickAngle)); // Vuruş animasyonu
+                } else {
+                    stickmanCtx.lineTo(this.x + 10, this.y + 20); // Sağ bacak
+                }
+                stickmanCtx.strokeStyle = this.team;
+                stickmanCtx.lineWidth = 2;
+                stickmanCtx.stroke();
+            }
+
+            kick() {
+                this.kicking = true;
+                let angle = 0;
+                const kickInterval = setInterval(() => {
+                    this.kickAngle = Math.sin(angle) * Math.PI / 4;
+                    angle += 0.2;
+                    if (angle > Math.PI) {
+                        this.kicking = false;
+                        this.kickAngle = 0;
+                        clearInterval(kickInterval);
+                    }
+                }, 50);
+            }
+        }
+
+        class Ball {
+            constructor() {
+                this.x = stickmanCanvas.width / 2;
+                this.y = stickmanCanvas.height - 10;
+                this.vx = 0;
+                this.vy = 0;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.1; // Yerçekimi
+                if (this.y > stickmanCanvas.height - 10) {
+                    this.y = stickmanCanvas.height - 10;
+                    this.vy *= -0.7; // Zıplama efekti
+                }
+                if (this.x < 0 || this.x > stickmanCanvas.width) {
+                    this.x = stickmanCanvas.width / 2;
+                    this.y = stickmanCanvas.height - 10;
+                    this.vx = 0;
+                    this.vy = 0;
+                }
+            }
+
+            draw() {
+                stickmanCtx.beginPath();
+                stickmanCtx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+                stickmanCtx.fillStyle = 'white';
+                stickmanCtx.fill();
+            }
+        }
+
+        const stickmen = [
+            new Stickman(stickmanCanvas.width / 4, 'red'),
+            new Stickman(3 * stickmanCanvas.width / 4, 'blue')
+        ];
+        const ball = new Ball();
+
+        function animateStickmen() {
+            stickmanCtx.fillStyle = 'rgba(0, 128, 0, 0.5)'; // Çim efekti
+            stickmanCtx.fillRect(0, 0, stickmanCanvas.width, stickmanCanvas.height);
+
+            stickmen.forEach(stickman => {
+                stickman.draw();
+                if (Math.abs(stickman.x - ball.x) < 20 && ball.y > stickmanCanvas.height - 20 && !stickman.kicking) {
+                    stickman.kick();
+                    ball.vx = (stickman.team === 'red' ? 5 : -5);
+                    ball.vy = -5;
+                }
+            });
+
+            ball.update();
+            ball.draw();
+
+            requestAnimationFrame(animateStickmen);
+        }
+
+        animateStickmen();
+
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            stickmanCanvas.width = window.innerWidth;
         });
     </script>
 </body>
