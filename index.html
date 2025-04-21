@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Esenyurt Havai Fişek Gösterisi</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .title {
+            color: white;
+            font-size: 3em;
+            text-align: center;
+            z-index: 2;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .firework {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="title">Esenyurt'ta Havai Fişek Gösterisi</div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        class Firework {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height;
+                this.sx = this.x;
+                this.sy = this.y;
+                this.targetY = Math.random() * canvas.height * 0.5;
+                this.speed = Math.random() * 5 + 5;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                this.exploded = false;
+                this.particles = [];
+                this.timeToExplode = (this.y - this.targetY) / this.speed;
+                this.time = 0;
+            }
+
+            update() {
+                if (!this.exploded) {
+                    this.y -= this.speed;
+                    this.time++;
+
+                    if (this.time >= this.timeToExplode) {
+                        this.explode();
+                    }
+                } else {
+                    this.particles.forEach((particle, index) => {
+                        particle.update();
+                        if (particle.life <= 0) {
+                            this.particles.splice(index, 1);
+                        }
+                    });
+                }
+            }
+
+            draw() {
+                if (!this.exploded) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                } else {
+                    this.particles.forEach(particle => particle.draw());
+                }
+            }
+
+            explode() {
+                this.exploded = true;
+                for (let i = 0; i < 50; i++) {
+                    this.particles.push(new Particle(this.x, this.y, this.color));
+                }
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 8;
+                this.vy = (Math.random() - 0.5) * 8;
+                this.color = color;
+                this.life = 50;
+                this.alpha = 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vy += 0.05; // Yerçekimi etkisi
+                this.life--;
+                this.alpha = this.life / 50;
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.alpha;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        const fireworks = [];
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (Math.random() < 0.05) {
+                fireworks.push(new Firework());
+            }
+
+            fireworks.forEach((firework, index) => {
+                firework.update();
+                firework.draw();
+                if (firework.exploded && firework.particles.length === 0) {
+                    fireworks.splice(index, 1);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    </script>
+</body>
+</html>
