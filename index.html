@@ -32,7 +32,7 @@
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
             animation: rainbow 3s infinite linear, wave 2s infinite ease-in-out;
             position: relative;
-            top: 100px; /* Adjusted to avoid overlapping with banner */
+            top: 100px;
         }
 
         @keyframes rainbow {
@@ -85,23 +85,21 @@
         stickmanCanvas.width = window.innerWidth;
         stickmanCanvas.height = 200;
 
-        // Function to draw the 23 Nisan banner
+        // 23 Nisan Banner
         function drawBanner() {
-            // Banner background (red with white stripes)
-            ctx.fillStyle = '#e30a17'; // Turkish flag red
+            ctx.fillStyle = '#e30a17';
             ctx.fillRect(0, 0, canvas.width, 100);
             ctx.fillStyle = 'white';
             ctx.fillRect(0, 20, canvas.width, 20);
             ctx.fillRect(0, 60, canvas.width, 20);
 
-            // Draw Turkish flag crescent and star
             ctx.fillStyle = 'white';
             ctx.beginPath();
-            ctx.arc(100, 50, 25, 0, Math.PI * 2); // Crescent outer circle
+            ctx.arc(100, 50, 25, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#e30a17';
             ctx.beginPath();
-            ctx.arc(115, 50, 20, 0, Math.PI * 2); // Crescent inner circle
+            ctx.arc(115, 50, 20, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = 'white';
             ctx.beginPath();
@@ -110,59 +108,8 @@
             ctx.lineTo(115, 60);
             ctx.lineTo(130, 65);
             ctx.lineTo(140, 50);
-            ctx.fill(); // Star
-
-            // Draw balloons
-            ctx.fillStyle = '#ffcc00'; // Yellow balloon
-            ctx.beginPath();
-            ctx.arc(canvas.width - 150, 70, 15, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#00ccff'; // Blue balloon
+
+            ctx.fillStyle = '#ffcc00';
             ctx.beginPath();
-            ctx.arc(canvas.width - 120, 50, 15, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = 'white';
-            ctx.beginPath();
-            ctx.moveTo(canvas.width - 150, 85);
-            ctx.lineTo(canvas.width - 150, 100);
-            ctx.moveTo(canvas.width - 120, 65);
-            ctx.lineTo(canvas.width - 120, 100);
-            ctx.stroke();
-
-            // Draw text
-            ctx.font = 'bold 40px Arial';
-            ctx.fillStyle = 'white';
-            ctx.textAlign = 'center';
-            ctx.fillText('23 Nisan Kutlu Olsun', canvas.width / 2, 60);
-            ctx.strokeStyle = '#e30a17';
-            ctx.lineWidth = 2;
-            ctx.strokeText('23 Nisan Kutlu Olsun', canvas.width / 2, 60);
-        }
-
-        class Firework {
-            constructor(x, targetY) {
-                this.x = x;
-                this.y = canvas.height;
-                this.sx = this.x;
-                this.sy = this.y;
-                this.targetY = targetY;
-                this.speed = 10;
-                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
-                this.exploded = false;
-                this.particles = [];
-                this.timeToExplode = (this.y - this.targetY) / this.speed;
-                this.time = 0;
-            }
-
-            update() {
-                if (!this.exploded) {
-                    this.y -= this.speed;
-                    this.time++;
-                    if (this.time >= this.timeToExplode) {
-                        this.explode();
-                    }
-                } else {
-                    this.particles.forEach((particle, index) => {
-                        particle.update();
-                        if (particle.life <= 0) {
-                            this.particles.splice(index
+            ctx
