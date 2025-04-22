@@ -31,6 +31,8 @@
             z-index: 2;
             text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
             animation: rainbow 3s infinite linear, wave 2s infinite ease-in-out;
+            position: relative;
+            top: 100px; /* Adjusted to avoid overlapping with banner */
         }
 
         @keyframes rainbow {
@@ -81,7 +83,61 @@
         const stickmanCanvas = document.getElementById('stickmanCanvas');
         const stickmanCtx = stickmanCanvas.getContext('2d');
         stickmanCanvas.width = window.innerWidth;
-        stickmanCanvas.height = 200; // Basketbol sahası için biraz daha yüksek alan
+        stickmanCanvas.height = 200;
+
+        // Function to draw the 23 Nisan banner
+        function drawBanner() {
+            // Banner background (red with white stripes)
+            ctx.fillStyle = '#e30a17'; // Turkish flag red
+            ctx.fillRect(0, 0, canvas.width, 100);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 20, canvas.width, 20);
+            ctx.fillRect(0, 60, canvas.width, 20);
+
+            // Draw Turkish flag crescent and star
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(100, 50, 25, 0, Math.PI * 2); // Crescent outer circle
+            ctx.fill();
+            ctx.fillStyle = '#e30a17';
+            ctx.beginPath();
+            ctx.arc(115, 50, 20, 0, Math.PI * 2); // Crescent inner circle
+            ctx.fill();
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.moveTo(140, 50);
+            ctx.lineTo(130, 35);
+            ctx.lineTo(115, 60);
+            ctx.lineTo(130, 65);
+            ctx.lineTo(140, 50);
+            ctx.fill(); // Star
+
+            // Draw balloons
+            ctx.fillStyle = '#ffcc00'; // Yellow balloon
+            ctx.beginPath();
+            ctx.arc(canvas.width - 150, 70, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#00ccff'; // Blue balloon
+            ctx.beginPath();
+            ctx.arc(canvas.width - 120, 50, 15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'white';
+            ctx.beginPath();
+            ctx.moveTo(canvas.width - 150, 85);
+            ctx.lineTo(canvas.width - 150, 100);
+            ctx.moveTo(canvas.width - 120, 65);
+            ctx.lineTo(canvas.width - 120, 100);
+            ctx.stroke();
+
+            // Draw text
+            ctx.font = 'bold 40px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'center';
+            ctx.fillText('23 Nisan Kutlu Olsun', canvas.width / 2, 60);
+            ctx.strokeStyle = '#e30a17';
+            ctx.lineWidth = 2;
+            ctx.strokeText('23 Nisan Kutlu Olsun', canvas.width / 2, 60);
+        }
 
         class Firework {
             constructor(x, targetY) {
@@ -109,241 +165,4 @@
                     this.particles.forEach((particle, index) => {
                         particle.update();
                         if (particle.life <= 0) {
-                            this.particles.splice(index, 1);
-                        }
-                    });
-                }
-            }
-
-            draw() {
-                if (!this.exploded) {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
-                    ctx.fillStyle = this.color;
-                    ctx.fill();
-                } else {
-                    this.particles.forEach(particle => particle.draw());
-                }
-            }
-
-            explode() {
-                this.exploded = true;
-                for (let i = 0; i < 50; i++) {
-                    this.particles.push(new Particle(this.x, this.y, this.color));
-                }
-            }
-        }
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.vx = (Math.random() - 0.5) * 8;
-                this.vy = (Math.random() - 0.5) * 8;
-                this.color = color;
-                this.life = 50;
-                this.alpha = 1;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vy += 0.05;
-                this.life--;
-                this.alpha = this.life / 50;
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.globalAlpha = this.alpha;
-                ctx.fill();
-                ctx.globalAlpha = 1;
-            }
-        }
-
-        const fireworks = [];
-
-        function animateFireworks() {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            fireworks.forEach((firework, index) => {
-                firework.update();
-                firework.draw();
-                if (firework.exploded && firework.particles.length === 0) {
-                    fireworks.splice(index, 1);
-                }
-            });
-
-            requestAnimationFrame(animateFireworks);
-        }
-
-        animateFireworks();
-
-        canvas.addEventListener('click', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            fireworks.push(new Firework(x, y));
-        });
-
-        // Basketbol Çöp Adam ve Top Animasyonu
-        class Stickman {
-            constructor(x, team) {
-                this.x = x;
-                this.y = stickmanCanvas.height - 30;
-                this.team = team; // 'red' veya 'blue'
-                this.shootAngle = 0;
-                this.shooting = false;
-            }
-
-            draw() {
-                stickmanCtx.beginPath();
-                stickmanCtx.arc(this.x, this.y - 20, 10, 0, Math.PI * 2); // Baş
-                stickmanCtx.moveTo(this.x, this.y - 10);
-                stickmanCtx.lineTo(this.x, this.y + 10); // Gövde
-                stickmanCtx.moveTo(this.x, this.y - 5);
-                if (this.shooting) {
-                    stickmanCtx.lineTo(this.x - 10 * Math.cos(this.shootAngle), this.y - 15 - 10 * Math.sin(this.shootAngle)); // Sol kol (atış)
-                    stickmanCtx.moveTo(this.x, this.y - 5);
-                    stickmanCtx.lineTo(this.x + 10 * Math.cos(this.shootAngle), this.y - 15 - 10 * Math.sin(this.shootAngle)); // Sağ kol (atış)
-                } else {
-                    stickmanCtx.lineTo(this.x - 10, this.y - 15); // Sol kol
-                    stickmanCtx.moveTo(this.x, this.y - 5);
-                    stickmanCtx.lineTo(this.x + 10, this.y - 15); // Sağ kol
-                }
-                stickmanCtx.moveTo(this.x, this.y + 10);
-                stickmanCtx.lineTo(this.x - 10, this.y + 20); // Sol bacak
-                stickmanCtx.moveTo(this.x, this.y + 10);
-                stickmanCtx.lineTo(this.x + 10, this.y + 20); // Sağ bacak
-                stickmanCtx.strokeStyle = this.team;
-                stickmanCtx.lineWidth = 2;
-                stickmanCtx.stroke();
-            }
-
-            shoot() {
-                this.shooting = true;
-                let angle = 0;
-                const shootInterval = setInterval(() => {
-                    this.shootAngle = Math.sin(angle) * Math.PI / 6;
-                    angle += 0.2;
-                    if (angle > Math.PI) {
-                        this.shooting = false;
-                        this.shootAngle = 0;
-                        clearInterval(shootInterval);
-                    }
-                }, 50);
-            }
-        }
-
-        class Ball {
-            constructor() {
-                this.x = stickmanCanvas.width / 4;
-                this.y = stickmanCanvas.height - 10;
-                this.vx = 0;
-                this.vy = 0;
-                this.inHoop = false;
-            }
-
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.vy += 0.2; // Yerçekimi
-
-                // Zemin çarpışması
-                if (this.y > stickmanCanvas.height - 10) {
-                    this.y = stickmanCanvas.height - 10;
-                    this.vy *= -0.6; // Zıplama efekti
-                    this.vx *= 0.8; // Sürtünme
-                }
-
-                // Pota kontrolü (pota: sağda, x=width-50, y=50)
-                if (this.x > stickmanCanvas.width - 60 && this.x < stickmanCanvas.width - 40 && this.y < 60 && this.y > 40 && !this.inHoop) {
-                    this.inHoop = true;
-                    setTimeout(() => this.reset(), 500); // Sayı sonrası sıfırlama
-                }
-
-                // Sınır kontrolü
-                if (this.x < 0 || this.x > stickmanCanvas.width) {
-                    this.reset();
-                }
-            }
-
-            draw() {
-                stickmanCtx.beginPath();
-                stickmanCtx.arc(this.x, this.y, 5, 0, Math.PI * 2);
-                stickmanCtx.fillStyle = 'orange';
-                stickmanCtx.fill();
-            }
-
-            reset() {
-                this.x = stickmanCanvas.width / 4;
-                this.y = stickmanCanvas.height - 10;
-                this.vx = 0;
-                this.vy = 0;
-                this.inHoop = false;
-            }
-        }
-
-        class Hoop {
-            draw() {
-                stickmanCtx.beginPath();
-                stickmanCtx.rect(stickmanCanvas.width - 50, 50, 10, 5); // Pota
-                stickmanCtx.strokeStyle = 'white';
-                stickmanCtx.lineWidth = 2;
-                stickmanCtx.stroke();
-                stickmanCtx.beginPath();
-                stickmanCtx.moveTo(stickmanCanvas.width - 50, 55);
-                stickmanCtx.lineTo(stickmanCanvas.width - 50, 70); // File
-                stickmanCtx.moveTo(stickmanCanvas.width - 40, 55);
-                stickmanCtx.lineTo(stickmanCanvas.width - 40, 70);
-                stickmanCtx.stroke();
-            }
-        }
-
-        const stickmen = [
-            new Stickman(stickmanCanvas.width / 4, 'red'),
-            new Stickman(stickmanCanvas.width / 3, 'blue')
-        ];
-        const ball = new Ball();
-        const hoop = new Hoop();
-
-        function animateStickmen() {
-            stickmanCtx.fillStyle = 'rgba(139, 69, 19, 0.5)'; // Parke zemin efekti
-            stickmanCtx.fillRect(0, 0, stickmanCanvas.width, stickmanCanvas.height);
-
-            stickmanCtx.beginPath();
-            stickmanCtx.moveTo(stickmanCanvas.width - 100, stickmanCanvas.height);
-            stickmanCtx.lineTo(stickmanCanvas.width - 100, 0); // Pota direği
-            stickmanCtx.strokeStyle = 'gray';
-            stickmanCtx.stroke();
-
-            hoop.draw();
-
-            stickmen.forEach(stickman => {
-                stickman.draw();
-                if (Math.abs(stickman.x - ball.x) < 20 && ball.y > stickmanCanvas.height - 20 && !stickman.shooting && !ball.inHoop) {
-                    stickman.shoot();
-                    ball.vx = 4;
-                    ball.vy = -8;
-                }
-            });
-
-            ball.update();
-            ball.draw();
-
-            requestAnimationFrame(animateStickmen);
-        }
-
-        animateStickmen();
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            stickmanCanvas.width = window.innerWidth;
-        });
-    </script>
-</body>
-</html>
+                            this.particles.splice(index
